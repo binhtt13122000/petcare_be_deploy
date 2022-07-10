@@ -1,0 +1,106 @@
+version: '3.6'
+
+services:
+  web:
+    image: nginx:1.14.2-alpine
+    restart: always
+    links:
+      - "petapp-backend:petapp-backend"
+    depends_on:
+      - "petapp-backend"
+    volumes:
+      - ./public_html:/public_html
+      - ./conf.d:/etc/nginx/conf.d/
+      - ./dhparam:/etc/nginx/dhparam
+      - ./certbot/conf/:/etc/nginx/ssl/
+      - ./certbot/data:/usr/share/nginx/html/letsencrypt
+    ports:
+      - 80:80
+      - 443:443
+  certbot:
+    image: certbot/certbot:latest
+    command: certonly --webroot --webroot-path=/usr/share/nginx/html/letsencrypt --email binhtt.work@gmail.com --agree-tos --no-eff-email -d binhtt.tech
+    volumes:
+      - ./certbot/conf/:/etc/letsencrypt
+      - ./certbot/logs/:/var/log/letsencrypt
+      - ./certbot/data:/usr/share/nginx/html/letsencrypt
+  postgres-db:
+    image: postgres:13
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  petapp-backend:
+    image: binhtt13122000/petcare-be:latest
+    restart: always
+    depends_on:
+      - "postgres-db"
+    ports:
+      - "4000:4000"
+    expose:
+      - "4000"
+    environment:
+      - API_PORT
+      - WEB_ADMIN_ROOT_URL
+      - BRANCH_ROOT_URL
+      - BLOCKCHAIN_SERVER
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - API_PREFIX
+      - JWT_SECRET_KEY
+      - REFRESH_TOKEN_SECRET
+      - REFRESH_TOKEN_EXPIRATION
+      - BUCKET
+      - REDIS_SERVER
+      - VNPAY_TMN_CODE
+      - VNPAY_HASH_SECRET
+      - VNPAY_URL
+      - VNPAY_VERSION
+      - MONGO_CONNECTION_STRING
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  redis-server:
+    image: redis
+    command: redis-server --appendonly yes
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+volumes:
+  db_data:
+  redis-data:
+  mongo-data:
