@@ -59,7 +59,7 @@ docker-compose --version
 $ git pull origin https://github.com/binhtt13122000/petcare_be_deploy.git
 ``` 
 After that, you must change certbot's command: Replace email and hostname
-#### Run script to create ssl certificate
+### Run script to create ssl certificate
 ```bash
 $ pwd //print working directory
 > /working_directory
@@ -69,11 +69,11 @@ $ openssl dhparam -out /working_directory/dhparam-2048.pem 2048
 $ ls
 > dhparam-2048.pem
 ```
-#### Run docker-compose 
+### Run docker-compose 
 ```bash
 $ docker-compose up -d
 ```
-#### Check
+### Check
 ```bash
 $ docker ps -a
 ```
